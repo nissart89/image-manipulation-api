@@ -1,39 +1,19 @@
 const express = require('express');
 const bodyParser = require('body-parser')
-
-var request = require('request');
-
-var fs = require('fs')
-  , gm = require('gm');
-// const multer  = require('multer');
-// const upload = multer();
+const request = require('request');
+const fs = require('fs'),
+      gm = require('gm');
 
 const port = 8888;
 
 const app = express();
 
-const settings = {
-  url: '',
-  width: '',
-  height: ''
-};
-
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
-
-app.get('/api/', (req, res, next) => {
-
-    console.log('start')
-    // resize and remove EXIF profile data
-    // gm('public/img.png')
-    // .resize(50, 50)
-    // .noProfile()
-    // .write('public/resize.png', function (err) {
-    //   if (!err) console.log('done');
-    // });
-
-})
+// app.get('/img/', (req, res, next) => {
+//   res.attachment('/img/resized.png');
+//
+//     // TODO: When the image is processed, assign an ID to it and make it accessible through GET
+//
+// })
 
 app.post('/api/transform', function (req, res, next) {
   var transform = {
@@ -45,7 +25,8 @@ app.post('/api/transform', function (req, res, next) {
     cropX: req.query.cropX,
     cropY: req.query.cropY,
     rotateAngle: req.query.rotate,
-    rotateColor: req.query.rotateColor
+    rotateColor: req.query.rotateColor,
+    id: Math.round(Date.now() / 100)
   };
   if (req.query.url) {
     transform.url = req.query.url;
@@ -61,21 +42,28 @@ app.post('/api/transform', function (req, res, next) {
 
   var image = gm(request(url));
 
-  if (transform.resizeW && req.query.resizeHeight) {
+  if (transform.resizeW && transform.resizeH) {
     image.resize(transform.resizeW, transform.resizeH);
+    console.log('RESIZED!')
   }
-  if (transform.resizeW && req.query.resizeHeight) {
+  if (transform.cropW && transform.cropH) {
     image.crop(transform.cropW, transform.cropH, transform.cropX, transform.cropY);
+    console.log('CROPED!')
   }
   if (transform.rotateAngle) {
     var bgColor = transform.rotateColor || 'white';
     image.rotate(bgColor, transform.rotateAngle);
+    console.log('ROTATED!')
   }
-  image.write('img/image.png', function (err) {
-    if (!err) console.log('Resizing done!');
-    res.status(200).send('Image Resized!');
+  image.write(`img/resized-${transform.id}.png`, function (err) {
+    if (!err) {
+      console.log('ALL DONE!');
+      res.download(`img/resized-${transform.id}.png`);
 
+    }
+    else console.log(err);
   });
+
 })
 
 app.use(function(err, req, res, next) {
