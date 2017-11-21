@@ -4,17 +4,13 @@ const request = require('request');
 const fs = require('fs'),
       gm = require('gm');
 
+const fileUpload = require('express-fileupload');
+
 const port = 8888;
 
 const app = express();
 
-// app.get('/img/', (req, res, next) => {
-//   res.attachment('/img/resized.png');
-//
-//     // TODO: When the image is processed, assign an ID to it and make it accessible through GET
-//
-// })
-
+// API
 app.post('/api/transform', function (req, res, next) {
   var transform = {
     url: '',
@@ -55,16 +51,38 @@ app.post('/api/transform', function (req, res, next) {
     image.rotate(bgColor, transform.rotateAngle);
     console.log('ROTATED!')
   }
-  image.write(`img/resized-${transform.id}.png`, function (err) {
+  image.write(`./public/processed/resized-${transform.id}.png`, function (err) {
     if (!err) {
       console.log('ALL DONE!');
-      res.download(`img/resized-${transform.id}.png`);
+      res.download(`./public/processed/resized-${transform.id}.png`);
 
     }
     else console.log(err);
   });
-
 })
+
+
+app.use('/', express.static('public'));
+
+app.use(fileUpload());
+
+// FORM - Front-end
+app.post('/upload', function(req, res) {
+  if (!req.files)
+    return res.status(400).send('No files were uploaded.');
+
+  // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
+  let uploadedImage = req.files.uploadedImage;
+  console.log(uploadedImage);
+  // Use the mv() method to place the file somewhere on your server
+  uploadedImage.mv('./public/uploads/uploaded-image.jpg', function(err) {
+    if (err)
+      return res.status(500).send(err);
+
+    res.send('File uploaded!');
+  });
+});
+
 
 app.use(function(err, req, res, next) {
     if (!res.headersSent) {
