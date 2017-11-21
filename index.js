@@ -51,10 +51,10 @@ app.post('/api/transform', function (req, res, next) {
     image.rotate(bgColor, transform.rotateAngle);
     console.log('ROTATED!')
   }
-  image.write(`processed/resized-${transform.id}.png`, function (err) {
+  image.write(`./public/processed/resized-${transform.id}.png`, function (err) {
     if (!err) {
       console.log('ALL DONE!');
-      res.download(`processed/resized-${transform.id}.png`);
+      res.download(`./public/processed/resized-${transform.id}.png`);
 
     }
     else console.log(err);
@@ -75,7 +75,7 @@ app.post('/upload', function(req, res) {
   let uploadedImage = req.files.uploadedImage;
   console.log(uploadedImage);
   // Use the mv() method to place the file somewhere on your server
-  uploadedImage.mv('./uploads/uploaded-image.jpg', function(err) {
+  uploadedImage.mv('./public/uploads/uploaded-image.jpg', function(err) {
     if (err)
       return res.status(500).send(err);
 
