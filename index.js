@@ -74,8 +74,15 @@ app.post('/upload', function(req, res) {
   // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
   let uploadedImage = req.files.uploadedImage;
   console.log(uploadedImage);
+
+  // Before moving the file, make sure the folder exist otherwise it'll fail.
+  let uploadDir = './public/uploads/';
+  if (!fs.existsSync(uploadDir)) {
+    console.log('Created upload folder');
+    fs.mkdirSync(uploadDir);
+  }
   // Use the mv() method to place the file somewhere on your server
-  uploadedImage.mv('./public/uploads/uploaded-image.jpg', function(err) {
+  uploadedImage.mv(uploadDir + 'uploaded-image.jpg', function(err) {
     if (err)
       return res.status(500).send(err);
 
